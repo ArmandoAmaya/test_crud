@@ -1,0 +1,151 @@
+<template>
+    <div>
+        <b-container class="mt-5">
+            <b-form id="usuarios_form" @submit.prevent="create">
+                <b-card>
+                    <b-card-title>Crear nuevo usuario</b-card-title>
+                    <b-alert
+                        :show="dismissCountDown"
+                        dismissible
+                        :variant="type"
+                        @dismissed="dismissCountDown=0"
+                        @dismiss-count-down="countDownChanged"
+                    >
+                        <p>{{ alertMessage }}</p>
+                        <b-progress
+                            variant="warning"
+                            :max="dismissSecs"
+                            :value="dismissCountDown"
+                            height="4px"
+                        ></b-progress>
+                    </b-alert>
+                    <b-row>
+                        <b-col md="6">
+                            <b-form-group
+                                label="Nombre:"
+                                label-for="id_name"
+                              >
+                                <b-form-input
+                                  id="id_name"
+                                  type="text"
+                                  required
+                                  placeholder="Nombre del usuario"
+                                  name="name"
+                                ></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col md="6">
+                            <b-form-group
+                                label="Correo electrónico:"
+                                label-for="id_email"
+                              >
+                                <b-form-input
+                                  id="id_email"
+                                  type="email"
+                                  required
+                                  placeholder="Email del usuario"
+                                  name="email"
+                                ></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col md="6">
+                            <b-form-group
+                                label="Contraseña:"
+                                label-for="id_pass"
+                              >
+                                <b-form-input
+                                  id="id_pass"
+                                  type="password"
+                                  required
+                                  placeholder="Contrase de ingreso"
+                                  name="password"
+                                ></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                        <b-col md="6">
+                            <b-form-group
+                                label="Repetir contraseña:"
+                                label-for="id_pass_repeat"
+                              >
+                                <b-form-input
+                                  id="id_pass_repeat"
+                                  type="password"
+                                  required
+                                  placeholder="Vuelve a escribir la contraseña"
+                                  name="password_repeat"
+                                ></b-form-input>
+                            </b-form-group>
+                        </b-col>
+
+                    </b-row>
+                
+                    
+                    <template v-slot:footer>
+                        <vue-ladda class="btn btn-outline-primary" :loading="loading">Guardar</vue-ladda>
+                    </template>
+                    
+                </b-card>
+            </b-form>
+        </b-container>
+    </div>
+</template>
+
+<script>
+import axios from "axios";
+export default {
+    name: "crear_usuario",
+    data(){
+        return {
+            loading: false,
+            dismissSecs: 10,
+            dismissCountDown: 0,
+            showDismissibleAlert: false,
+            type: 'warning',
+            alertMessage: ''
+        }
+    },
+    methods: {
+        create(){
+            let myForm = document.getElementById("usuarios_form");
+            let formData = new FormData(myForm);
+            this.loading = true;
+
+            axios
+            .post(this.$store.state.api + "usuarios/create", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            })
+            .then(resp => {
+                var data = resp.data;
+                if (true == data.success) {
+                    this.showAlert('success');
+                    this.alertMessage = data.message;
+                    var $this = this;
+                    setTimeout(function(){
+                        $this.$router.push("/");
+                    }, 2000);
+                    this.loading = false;
+                }else{
+                    this.showAlert('danger');
+                    this.alertMessage = data.message;
+                    this.loading = false;
+                }
+                
+            });
+        },
+        countDownChanged(dismissCountDown) {
+            this.dismissCountDown = dismissCountDown
+        },
+        showAlert(typeAlert) {
+            this.type = typeAlert;
+            this.dismissCountDown = this.dismissSecs
+        }
+    }
+};
+</script>
+
+<style lang="scss" scoped></style>
